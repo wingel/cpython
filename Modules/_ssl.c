@@ -194,6 +194,13 @@ static void _PySSLFixErrno(void) {
 #define HAVE_OPENSSL_CRYPTO_LOCK
 #endif
 
+/* export_keying_material is present from 1.0.1 */
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L
+# define HAVE_EXPORT_KEYING_MATERIAL 1
+#else
+# define HAVE_EXPORT_KEYING_MATERIAL 0
+#endif
+
 #if defined(OPENSSL_VERSION_1_1) && !defined(OPENSSL_NO_SSL2)
 #define OPENSSL_NO_SSL2
 #endif
@@ -2708,6 +2715,50 @@ _ssl__SSLSocket_verify_client_post_handshake_impl(PySSLSocket *self)
 #endif
 }
 
+#if HAVE_EXPORT_KEYING_MATERIAL
+/*[clinic input]
+_ssl._SSLSocket.export_keying_material
+    label: Py_buffer(accept={buffer, str, NoneType})
+    key_len: int
+    context: Py_buffer(accept={buffer, str, NoneType})
+[clinic start generated code]*/
+
+static PyObject *
+_ssl__SSLSocket_export_keying_material_impl(PySSLSocket *self,
+                                            Py_buffer *label, int key_len,
+                                            Py_buffer *context)
+/*[clinic end generated code: output=a9308312295b26cc input=bdcd503c149308b0]*/
+{
+    PyObject *out = NULL;
+    unsigned char *key;
+
+    if (key_len < 1) {
+        PyErr_SetString(PyExc_ValueError, "key_len must be positive");
+        return NULL;
+    }
+
+    out = PyBytes_FromStringAndSize(NULL, key_len);
+    if (out == NULL)
+        goto error;
+
+    key = (unsigned char *)PyBytes_AS_STRING(out);
+
+    if (SSL_export_keying_material(self->ssl,
+                                   key, key_len,
+                                   label->buf, label->len,
+                                   context->buf, context->len,
+                                   context->buf != NULL) != 1) {
+        Py_DECREF(out);
+        out = NULL;
+        _setSSLError(NULL, 0, __FILE__, __LINE__);
+        goto error;
+    }
+
+error:
+    return out;
+}
+#endif
+
 #ifdef OPENSSL_VERSION_1_1
 
 static SSL_SESSION*
@@ -2885,6 +2936,7 @@ static PyMethodDef PySSLMethods[] = {
     _SSL__SSLSOCKET_COMPRESSION_METHODDEF
     _SSL__SSLSOCKET_SHUTDOWN_METHODDEF
     _SSL__SSLSOCKET_VERIFY_CLIENT_POST_HANDSHAKE_METHODDEF
+    _SSL__SSLSOCKET_EXPORT_KEYING_MATERIAL_METHODDEF
     {NULL, NULL}
 };
 
@@ -6111,6 +6163,12 @@ PyInit__ssl(void)
     addbool(m, "HAS_ALPN", 1);
 #else
     addbool(m, "HAS_ALPN", 0);
+#endif
+
+#if HAVE_EXPORT_KEYING_MATERIAL
+    addbool(m, "HAS_EXPORT_KEYING_MATERIAL", 1);
+#else
+    addbool(m, "HAS_EXPORT_KEYING_MATERIAL", 0);
 #endif
 
 #if defined(SSL2_VERSION) && !defined(OPENSSL_NO_SSL2)

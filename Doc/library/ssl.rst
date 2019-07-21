@@ -1274,6 +1274,12 @@ SSL sockets also have the following additional methods and attributes:
 
    .. versionadded:: 3.3
 
+.. method:: SSLSocket.export_keying_material(label, key_len, context)
+
+   Return keying material in accordance with RFC5705
+
+   .. versionadded:: 3.8.?
+
 .. method:: SSLSocket.get_channel_binding(cb_type="tls-unique")
 
    Get channel binding data for current connection, as a bytes object.  Returns

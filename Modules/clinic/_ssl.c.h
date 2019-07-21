@@ -360,6 +360,52 @@ _ssl__SSLSocket_verify_client_post_handshake(PySSLSocket *self, PyObject *Py_UNU
     return _ssl__SSLSocket_verify_client_post_handshake_impl(self);
 }
 
+#if (HAVE_EXPORT_KEYING_MATERIAL)
+
+PyDoc_STRVAR(_ssl__SSLSocket_export_keying_material__doc__,
+"export_keying_material($self, /, label, key_len, context)\n"
+"--\n"
+"\n");
+
+#define _SSL__SSLSOCKET_EXPORT_KEYING_MATERIAL_METHODDEF    \
+    {"export_keying_material", (PyCFunction)_ssl__SSLSocket_export_keying_material, METH_FASTCALL|METH_KEYWORDS, _ssl__SSLSocket_export_keying_material__doc__},
+
+static PyObject *
+_ssl__SSLSocket_export_keying_material_impl(PySSLSocket *self,
+                                            Py_buffer *label, int key_len,
+                                            Py_buffer *context);
+
+static PyObject *
+_ssl__SSLSocket_export_keying_material(PySSLSocket *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"label", "key_len", "context", NULL};
+    static _PyArg_Parser _parser = {"z*iz*:export_keying_material", _keywords, 0};
+    Py_buffer label = {NULL, NULL};
+    int key_len;
+    Py_buffer context = {NULL, NULL};
+
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &label, &key_len, &context)) {
+        goto exit;
+    }
+    return_value = _ssl__SSLSocket_export_keying_material_impl(self, &label, key_len, &context);
+
+exit:
+    /* Cleanup for label */
+    if (label.obj) {
+       PyBuffer_Release(&label);
+    }
+    /* Cleanup for context */
+    if (context.obj) {
+       PyBuffer_Release(&context);
+    }
+
+    return return_value;
+}
+
+#endif /* (HAVE_EXPORT_KEYING_MATERIAL) */
+
 static PyObject *
 _ssl__SSLContext_impl(PyTypeObject *type, int proto_version);
 
@@ -1174,6 +1220,10 @@ exit:
     #define _SSL__SSLSOCKET_SELECTED_ALPN_PROTOCOL_METHODDEF
 #endif /* !defined(_SSL__SSLSOCKET_SELECTED_ALPN_PROTOCOL_METHODDEF) */
 
+#ifndef _SSL__SSLSOCKET_EXPORT_KEYING_MATERIAL_METHODDEF
+    #define _SSL__SSLSOCKET_EXPORT_KEYING_MATERIAL_METHODDEF
+#endif /* !defined(_SSL__SSLSOCKET_EXPORT_KEYING_MATERIAL_METHODDEF) */
+
 #ifndef _SSL__SSLCONTEXT_GET_CIPHERS_METHODDEF
     #define _SSL__SSLCONTEXT_GET_CIPHERS_METHODDEF
 #endif /* !defined(_SSL__SSLCONTEXT_GET_CIPHERS_METHODDEF) */
@@ -1193,4 +1243,4 @@ exit:
 #ifndef _SSL_ENUM_CRLS_METHODDEF
     #define _SSL_ENUM_CRLS_METHODDEF
 #endif /* !defined(_SSL_ENUM_CRLS_METHODDEF) */
-/*[clinic end generated code: output=c4e73b70ac3618ba input=a9049054013a1b77]*/
+/*[clinic end generated code: output=d9e38c1d13ce86a6 input=a9049054013a1b77]*/
