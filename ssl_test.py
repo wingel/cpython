@@ -32,7 +32,7 @@ import psutil, os
 p = psutil.Process( os.getpid() )
 for dll in p.memory_maps():
     print(dll.path)
-    if '/libssl' in dll.path:
+    if '/libssl' in dll.path or '\\libssl' in dll.path:
         ssl_alt_path = dll.path
         break
 
