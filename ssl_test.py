@@ -114,7 +114,7 @@ if ssl_lib.SSL_export_keying_material(
 
 print("ssl_addr", hex(ssl_addr))
 
-PUL = ctypes.POINTER(ctypes.c_ulong)
+PUL = ctypes.POINTER(ctypes.c_uint64)
 sslobj_addr = id(ssock._sslobj)
 for i in range(0, 32, 4):
     p = ctypes.cast(sslobj_addr + i, PUL)
