@@ -34,6 +34,14 @@ print("CRYPTO_DLL_PATH:", crypto_dll_path)
 ssl_dll_path = ssl._ssl.SSL_DLL_PATH
 print("SSL_DLL_PATH:", ssl_dll_path)
 
+import psutil, os
+p = psutil.Process( os.getpid() )
+for dll in p.memory_maps():
+    if '/libssl' in dll.path:
+        ssl_alt_path = dll.path
+        break
+print("SSL_ALT_PATH:", ssl_alt_path)
+
 print("ssock.version:", repr(ssock.version()))
 ssl_addr = ssock._sslobj.get_internal_addr()
 
@@ -102,6 +110,18 @@ if ssl_lib.SSL_export_keying_material(
         c_context, c_context_len, c_use_context):
     print("ctypes SSL_export_keying_material", binascii.b2a_hex(c_km))
 
+print("ssl_addr", hex(ssl_addr))
+
+PUL = ctypes.POINTER(ctypes.c_ulong)
+sslobj_addr = id(ssock._sslobj)
+for i in range(0, 32, 4):
+    p = ctypes.cast(sslobj_addr + i, PUL)
+    print("0x%016x + 0x%02x: 0x%08x" % (sslobj_addr, i, p[0]))
+
+raw_addr = ctypes.cast(sslobj_addr + 0x18, PUL)[0]
+print("raw_addr", hex(raw_addr))
+assert(raw_addr == ssl_addr)
+
 print()
 print("cffi")
 
@@ -153,7 +173,6 @@ else:
     f_context_len = len(context)
     f_context = ssl_ffi.new('unsigned char [%u]' % f_context_len, context)
     f_use_context = 1
-
 
 if ssl_lib.SSL_export_keying_material(ssl_ptr,
                                       f_km, len(f_km),
