@@ -28,18 +28,20 @@ print("ssl.OPENSSL_BUILT_ON", ssl.OPENSSL_BUILT_ON)
 print("ssl.OPENSSL_PLATFORM", ssl.OPENSSL_PLATFORM)
 print("ssl.OPENSSL_DIR", ssl.OPENSSL_DIR)
 
+import psutil, os
+p = psutil.Process( os.getpid() )
+for dll in p.memory_maps():
+    print(dll.path)
+    if '/libssl' in dll.path:
+        ssl_alt_path = dll.path
+        break
+
 crypto_dll_path = ssl._ssl.CRYPTO_DLL_PATH
 print("CRYPTO_DLL_PATH:", crypto_dll_path)
 
 ssl_dll_path = ssl._ssl.SSL_DLL_PATH
 print("SSL_DLL_PATH:", ssl_dll_path)
 
-import psutil, os
-p = psutil.Process( os.getpid() )
-for dll in p.memory_maps():
-    if '/libssl' in dll.path:
-        ssl_alt_path = dll.path
-        break
 print("SSL_ALT_PATH:", ssl_alt_path)
 
 print("ssock.version:", repr(ssock.version()))
